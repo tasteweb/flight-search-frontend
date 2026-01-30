@@ -1,68 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
   <title>Flight Search</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="container">
-    <h1>Find Your Flight</h1>
-    <p class="subtitle">
-      Search available flights and request booking assistance from our travel agency.
-    </p>
+<header class="topbar">
+  <img src="logo.png" class="logo">
+</header>
 
-    <form id="searchForm" class="card">
-      <div class="row trip-type">
+<div class="container">
 
-        <div>
-          <label>Trip Type</label>
-          <select id="tripType">
-            <option value="oneway">One Way</option>
-            <option value="roundtrip">Round Trip</option>
-          </select>
-        </div>
+  <form id="searchForm" class="card">
+
+    <div class="row">
+      <div>
+        <label>From (city or airport)</label>
+        <input id="origin" required>
       </div>
 
-      <div class="row route">
+      <div>
+        <label>To (city or airport)</label>
+        <input id="destination" required>
+      </div>
+    </div>
 
-        <div>
-          <label>From</label>
-          <input type="text" id="origin" placeholder="JFK" required />
-        </div>
-
-        <div>
-          <label>To</label>
-          <input type="text" id="destination" placeholder="LHR" required />
-        </div>
+    <div class="row">
+      <div>
+        <label>Trip type</label>
+        <select id="tripType">
+          <option value="oneway">One way</option>
+          <option value="roundtrip">Round trip</option>
+        </select>
       </div>
 
-      <div class="row dates">
-
-        <div class="date">
-          <label>Departure Date</label>
-          <input type="date" id="date" required />
-        </div>
-
-        <div id="returnDateContainer" class="date hidden">
-          <label>Return Date</label>
-          <input type="date" id="returnDate" />
-        </div>
-
-        <div class="adults">
-          <label>Adults</label>
-          <input type="number" id="adults" value="1" min="1" />
-        </div>
+      <div>
+        <label>Departure</label>
+        <input type="date" id="date" required>
       </div>
 
-      <button type="submit" class="primary-btn">Search Flights</button>
-    </form>
+      <div id="returnDateContainer" class="hidden">
+        <label>Return</label>
+        <input type="date" id="returnDate">
+      </div>
+    </div>
 
-    <div id="results"></div>
+    <div class="row">
+      <div>
+        <label>Adults</label>
+        <input type="number" id="adults" value="1" min="1">
+      </div>
+
+      <div>
+        <label>Children</label>
+        <input type="number" id="children" value="0" min="0">
+      </div>
+
+      <div>
+        <label>Stops</label>
+        <select id="stopFilter">
+          <option value="all">All</option>
+          <option value="direct">Direct only</option>
+          <option value="layover">With layover</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Sort</label>
+        <select id="sortBy">
+          <option value="price">Lowest price</option>
+          <option value="duration">Shortest trip</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="primary-btn">Search flights</button>
+
+  </form>
+
+  <div id="results"></div>
+
+  <div class="pager">
+    <button id="prevPage">Previous</button>
+    <span id="pageLabel"></span>
+    <button id="nextPage">Next</button>
   </div>
 
-  <script src="script.js"></script>
-</body>
+</div>
 
+<script src="script.js"></script>
+</body>
 </html>
