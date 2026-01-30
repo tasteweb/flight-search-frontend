@@ -6,7 +6,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let selectedFlight = null;
 
-  // --- FIXED RETURN DATE VISIBILITY LOGIC ---
+  /* ---------- Helpers ---------- */
+  function formatDuration(iso) {
+    if (!iso) return "";
+    const h = iso.match(/(\d+)H/);
+    const m = iso.match(/(\d+)M/);
+    return `${h ? h[1] + "h" : ""} ${m ? m[1] + "m" : ""}`.trim();
+  }
+
+  function formatDateTime(value) {
+    return new Date(value).toLocaleString(undefined, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
   function updateReturnDateVisibility() {
     if (tripTypeSelect.value === "roundtrip") {
       returnDateContainer.classList.remove("hidden");
@@ -16,59 +33,54 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   tripTypeSelect.addEventListener("change", updateReturnDateVisibility);
-
-  // run once on page load
   updateReturnDateVisibility();
-  // ----------------------------------------
 
+  /* ---------- Search Flights ---------- */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     resultsDiv.innerHTML = "Searching flights...";
 
-    const origin = document.getElementById("origin").value.trim().toUpperCase();
-    const destination = document.getElementById("destination").value.trim().toUpperCase();
-    const date = document.getElementById("date").value;
-    const returnDate = document.getElementById("returnDate").value;
-    const adults = document.getElementById("adults").value;
-    const tripType = tripTypeSelect.value;
-
-    if (origin.length !== 3 || destination.length !== 3) {
-      resultsDiv.innerHTML =
-        "Please enter valid 3-letter airport or city codes (e.g. JFK, LHR).";
-      return;
-    }
-
     const body = {
-      origin,
-      destination,
-      date,
-      adults,
-      tripType
+      origin: document.getElementById("origin").value.trim().toUpperCase(),
+      destination: document.getElementById("destination").value.trim().toUpperCase(),
+      date: document.getElementById("date").value,
+      returnDate: document.getElementById("returnDate").value,
+      adults: document.getElementById("adults").value,
+      tripType: tripTypeSelect.value
     };
 
-    if (tripType === "roundtrip") {
-      body.returnDate = returnDate;
-    }
+    const res = await fetch(
+      "https://flight-search-backend-jgmb.onrender.com/api/search-flights",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      }
+    );
 
-    const response = await fetch("https://flight-search-backend-jgmb.onrender.com/api/search-flights", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-
-    const flights = await response.json();
+    const flights = await res.json();
     resultsDiv.innerHTML = "";
 
     flights.forEach((flight, index) => {
       const div = document.createElement("div");
       div.className = "flight";
 
+      const route = flight.segments
+        .map(s => s.from)
+        .concat(flight.segments[flight.segments.length - 1].to)
+        .join(" → ");
+
+      const flightNums = flight.segments
+        .map(s => `${s.airline}${s.flightNumber}`)
+        .join(" + ");
+
       div.innerHTML = `
         <div class="flight-header">
           <div>
-            <strong>Option ${index + 1}</strong><br />
+            <strong>Option ${index + 1}: ${flightNums}</strong><br />
             <span class="flight-details">
-              Stops: ${flight.stops} · Duration: ${flight.totalDuration}
+              ${route}<br />
+              Stops: ${flight.stops} · Duration: ${formatDuration(flight.totalDuration)}
             </span>
           </div>
           <div class="flight-price">
@@ -77,13 +89,13 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <div class="flight-details">
-          ${flight.segments.map(s => `
-            <div>
-              <strong>${s.airline}${s.flightNumber}</strong>
+          ${flight.segments.map((s, i) => `
+            <div style="margin-bottom: 8px;">
+              <strong>Segment ${i + 1}: ${s.airline}${s.flightNumber}</strong><br />
               ${s.from} → ${s.to}<br />
               <small>
-                ${new Date(s.depart).toLocaleString()} – 
-                ${new Date(s.arrive).toLocaleString()}
+                ${formatDateTime(s.depart)} – ${formatDateTime(s.arrive)}
+                · ${formatDuration(s.duration)}
               </small>
             </div>
           `).join("")}
@@ -94,78 +106,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
       div.querySelector(".select-btn").addEventListener("click", () => {
         selectedFlight = flight;
-        showBookingForm();
+        showBookingForm(div);
       });
 
       resultsDiv.appendChild(div);
     });
   });
 
-  function showBookingForm() {
-    resultsDiv.innerHTML += `
-      <div class="card booking-form">
-        <h2>Request Booking Assistance</h2>
-        <p>
-          Our travel agent will confirm availability and contact you to complete the booking.
-        </p>
+  /* ---------- Booking Form ---------- */
+  function showBookingForm(parentDiv) {
+    const old = document.querySelector(".booking-form");
+    if (old) old.remove();
 
-        <label>Full Name</label>
-        <input type="text" id="custName" required />
+    const formDiv = document.createElement("div");
+    formDiv.className = "card booking-form";
 
-        <label>Email</label>
-        <input type="email" id="custEmail" required />
+    formDiv.innerHTML = `
+      <h2>Request Booking Assistance</h2>
+      <p>Our travel agent will confirm availability and contact you.</p>
 
-        <label>Phone (optional)</label>
-        <input type="text" id="custPhone" />
-
-        <label>Notes (optional)</label>
-        <textarea id="custNotes" rows="3"></textarea>
-
-        <button class="primary-btn" id="sendBooking">
-          Send Booking Request
-        </button>
+      <div class="row">
+        <div>
+          <label>Full Name</label>
+          <input id="custName" />
+        </div>
+        <div>
+          <label>Email</label>
+          <input id="custEmail" type="email" />
+        </div>
+        <div>
+          <label>Phone (optional)</label>
+          <input id="custPhone" />
+        </div>
       </div>
+
+      <label>Notes (optional)</label>
+      <textarea id="custNotes" rows="3"></textarea>
+
+      <button class="primary-btn" id="sendBooking">Send Booking Request</button>
     `;
 
-    document
-      .getElementById("sendBooking")
-      .addEventListener("click", sendBookingRequest);
+    parentDiv.insertAdjacentElement("afterend", formDiv);
+    document.getElementById("sendBooking").addEventListener("click", sendBooking);
   }
 
-  async function sendBookingRequest() {
-    if (!selectedFlight) {
-      alert("No flight selected.");
-      return;
-    }
+  async function sendBooking() {
+    const payload = {
+      name: document.getElementById("custName").value,
+      email: document.getElementById("custEmail").value,
+      phone: document.getElementById("custPhone").value,
+      notes: document.getElementById("custNotes").value,
+      flight: selectedFlight
+    };
 
-    const name = document.getElementById("custName").value;
-    const email = document.getElementById("custEmail").value;
-    const phone = document.getElementById("custPhone").value;
-    const notes = document.getElementById("custNotes").value;
+    const res = await fetch(
+      "https://flight-search-backend-jgmb.onrender.com/api/booking-request",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
 
-    if (!name || !email) {
-      alert("Name and email are required.");
-      return;
-    }
-
-    const response = await fetch("https://flight-search-backend-jgmb.onrender.com/api/booking-request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        email,
-        phone,
-        notes,
-        flight: selectedFlight
-      })
-    });
-
-    const result = await response.json();
-
+    const result = await res.json();
     if (result.success) {
-      alert("Your booking request has been sent. We will contact you shortly.");
+      alert("Booking request sent. The agency will contact you.");
     } else {
-      alert("Failed to send booking request. Please try again.");
+      alert(result.error || "Booking failed. Check backend logs.");
     }
   }
 });

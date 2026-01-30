@@ -194,3 +194,17 @@ textarea:focus {
 .hidden {
   display: none !important;
 }
+
+.booking-form {
+  margin-top: 20px;
+}
+
+.booking-form .row {
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.booking-form textarea {
+  margin-top: 10px;
+  width: 100%;
+}
