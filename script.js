@@ -16,11 +16,52 @@ tripType.onchange = () => {
 function dur(iso) {
   const h = iso.match(/(\d+)H/);
   const m = iso.match(/(\d+)M/);
-  return `${h ? h[1] + "h" : ""} ${m ? m[1] + "m" : ""}`;
+  return `${h ? h[1] + "h" : ""} ${m ? h && m ? " " : ""}${m ? m[1] + "m" : ""}`;
 }
 
 function minutesBetween(a, b) {
   return (new Date(b) - new Date(a)) / 60000;
+}
+
+form.onsubmit = async e => {
+  e.preventDefault();
+  currentPage = 1;
+  await search();
+};
+
+async function search() {
+
+  resultsDiv.innerHTML = "Searching...";
+
+  const res = await fetch(API + "/api/search-flights", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      origin: origin.value,
+      destination: destination.value,
+      date: date.value,
+      returnDate: returnDate.value,
+      adults: adults.value,
+      children: children.value,
+      tripType: tripType.value,
+      page: currentPage
+    })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.results) {
+    resultsDiv.innerHTML =
+      data.error || "No results found.";
+    return;
+  }
+
+  lastResults = data.results.map(normalize);
+
+  document.getElementById("pageLabel").textContent =
+    `Page ${data.page}`;
+
+  render();
 }
 
 function render() {
@@ -40,6 +81,11 @@ function render() {
   }
 
   resultsDiv.innerHTML = "";
+
+  if (!data.length) {
+    resultsDiv.textContent = "No flights match your filters.";
+    return;
+  }
 
   data.forEach(f => {
     const d = document.createElement("div");
@@ -72,30 +118,30 @@ function normalize(raw) {
       segments[i].arrive,
       segments[i + 1].depart
     );
-    layoverText += `Layover in ${segments[i].to}: ${Math.floor(mins / 60)}h ${mins % 60}m<br>`;
+    layoverText += `Layover in ${segments[i].to}: ${Math.floor(mins / 60)}h ${Math.round(mins % 60)}m<br>`;
   }
 
-  const baggage = raw.baggage
-    .map(b => `Checked: ${b.checkedBags}, Cabin: ${b.cabinBags}`)
-    .join(" | ");
+  const baggage = raw.baggage.length
+    ? raw.baggage.map(b => `Checked ${b.checkedBags}, Cabin ${b.cabinBags}`).join(" | ")
+    : "Baggage information not available";
 
-  const price = Number(raw.price) + 75;
+  const basePrice = Number(raw.price);
+  const finalPrice = basePrice + 75;
 
-  const totalMinutes = raw.segments.reduce((a, s) => {
-    const m = s.duration.match(/(\d+)H|(\d+)M/g) || [];
-    let sum = 0;
-    m.forEach(x => {
-      if (x.endsWith("H")) sum += parseInt(x) * 60;
-      if (x.endsWith("M")) sum += parseInt(x);
-    });
-    return a + sum;
-  }, 0);
+  let totalMinutes = 0;
+
+  raw.segments.forEach(s => {
+    const h = s.duration.match(/(\d+)H/);
+    const m = s.duration.match(/(\d+)M/);
+    if (h) totalMinutes += parseInt(h[1]) * 60;
+    if (m) totalMinutes += parseInt(m[1]);
+  });
 
   return {
     title: raw.segments.map(s => s.airline + s.flightNumber).join(" + "),
     duration: dur(raw.totalDuration),
     stops: raw.stops,
-    finalPrice: price.toFixed(2),
+    finalPrice: finalPrice.toFixed(2),
     baggage,
     layovers: layoverText,
     totalMinutes,
@@ -103,38 +149,7 @@ function normalize(raw) {
   };
 }
 
-form.onsubmit = async e => {
-  e.preventDefault();
-  currentPage = 1;
-  await search();
-};
-
-async function search() {
-
-  const res = await fetch(API + "/api/search-flights", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      origin: origin.value,
-      destination: destination.value,
-      date: date.value,
-      returnDate: returnDate.value,
-      adults: adults.value,
-      children: children.value,
-      tripType: tripType.value,
-      page: currentPage
-    })
-  });
-
-  const data = await res.json();
-
-  lastResults = data.results.map(normalize);
-
-  document.getElementById("pageLabel").textContent =
-    `Page ${data.page}`;
-
-  render();
-}
+/* ---------- paging ---------- */
 
 prevPage.onclick = async () => {
   if (currentPage > 1) {
@@ -151,7 +166,7 @@ nextPage.onclick = async () => {
 document.getElementById("stopFilter").onchange = render;
 document.getElementById("sortBy").onchange = render;
 
-/* -------- booking -------- */
+/* ---------- booking ---------- */
 
 function showBooking(flight, parent) {
 
@@ -174,6 +189,8 @@ function showBooking(flight, parent) {
 
   sendReq.onclick = async () => {
 
+    bs.textContent = "Sending...";
+
     const r = await fetch(API + "/api/booking-request", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -190,6 +207,6 @@ function showBooking(flight, parent) {
 
     bs.textContent = j.success
       ? "Request sent. Check your email."
-      : "Failed to send request.";
+      : j.error || "Failed to send request.";
   };
 }
