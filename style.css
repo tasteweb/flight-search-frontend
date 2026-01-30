@@ -7,7 +7,7 @@ body {
 }
 
 .topbar {
-  background: #fff;
+  background: #ffffff;
   padding: 10px 30px;
 }
 
@@ -37,11 +37,13 @@ body {
 input, select, textarea {
   padding: 6px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .primary-btn, .select-btn, button {
   padding: 8px 14px;
   margin-top: 10px;
+  cursor: pointer;
 }
 
 .flight {
@@ -59,6 +61,29 @@ input, select, textarea {
   text-align: center;
   margin: 20px;
 }
+
+/* ---------------- Disclaimer styling ---------------- */
+
+.disclaimer-box {
+  background: #fff3cd;
+  color: #664d03;
+  border: 1px solid #ffecb5;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.disclaimer-box ul {
+  margin: 8px 0 0 18px;
+  padding: 0;
+}
+
+.disclaimer-box li {
+  margin-bottom: 5px;
+}
+
+/* ---------------- Booking form ---------------- */
 
 .booking-form {
   margin-top: 10px;
