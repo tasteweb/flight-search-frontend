@@ -152,6 +152,9 @@ function renderResults() {
         <div><strong>Duration:</strong> ${f.duration}</div>
         <div><strong>Stops:</strong> ${f.stops}</div>
         <div><strong>Baggage:</strong> ${f.baggage}</div>
+
+        <div><strong>Flight segments:</strong><br>${f.segmentDetails}</div>
+
         ${f.layovers ? `<div><strong>Layovers:</strong><br>${f.layovers}</div>` : ""}
       </div>
 
@@ -204,6 +207,12 @@ function normalizeFlight(raw) {
     if (m) totalMinutes += parseInt(m[1]);
   });
 
+  const segmentDetails = segments.map((s, i) => {
+    return `${i + 1}. ${s.airline}${s.flightNumber} ${s.from} → ${s.to}
+Depart: ${new Date(s.depart).toLocaleString()}
+Arrive: ${new Date(s.arrive).toLocaleString()}`;
+  }).join("<br><br>");
+
   const basePrice = Number(raw.price);
   const finalPrice = basePrice + 75;
 
@@ -215,6 +224,7 @@ function normalizeFlight(raw) {
     baggage: baggageText,
     layovers: layoverText,
     totalMinutes,
+    segmentDetails,
     raw
   };
 }
