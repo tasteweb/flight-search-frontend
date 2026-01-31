@@ -112,7 +112,7 @@ function renderResults() {
     d.className = "flight";
 
     d.innerHTML = `
-      <strong>${f.title}</strong><br>
+      <strong>${f.title}</strong>
       Price: ${f.finalPrice.toFixed(2)} SAR (includes 75 SAR service fee)<br>
       Duration: ${f.duration}<br>
       Stops: ${f.stops}<br>
@@ -211,10 +211,10 @@ function showBookingForm(flight, parent) {
 
   d.innerHTML = `
     <h3>Booking request</h3>
-    <input id="bn" placeholder="Name"><br>
-    <input id="be" placeholder="Email"><br>
-    <input id="bp" placeholder="Phone"><br>
-    <textarea id="bno" placeholder="Notes"></textarea><br>
+    <input id="bn" placeholder="Name">
+    <input id="be" placeholder="Email">
+    <input id="bp" placeholder="Phone">
+    <textarea id="bno" placeholder="Notes"></textarea>
     <button id="sendReq">Send</button>
     <div id="bs"></div>
   `;
@@ -225,6 +225,7 @@ function showBookingForm(flight, parent) {
 
     const status = document.getElementById("bs");
     status.textContent = "Sending...";
+    status.className = "";
 
     const r = await fetch(API + "/api/booking-request", {
       method: "POST",
@@ -240,8 +241,13 @@ function showBookingForm(flight, parent) {
 
     const j = await r.json();
 
-    status.textContent = j.success
-      ? "Request sent. Please check your email."
-      : (j.error || "Failed to send request.");
+    if (j.success) {
+      status.textContent = "Request sent. Please check your email.";
+      status.className = "status-message";
+    } else {
+      status.textContent = j.error || "Failed to send request.";
+      status.className = "";
+    }
+
   });
 }
