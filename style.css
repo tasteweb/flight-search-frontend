@@ -2,17 +2,21 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
   background:
-    linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)),
+    linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),
     url(bg.jpg) center/cover fixed;
 }
 
+/* top white bar fix */
 .topbar {
-  background: #ffffff;
-  padding: 10px 30px;
+  background: transparent;
+  padding: 14px 30px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .logo {
-  height: 40px;
+  height: 42px;
 }
 
 .container {
@@ -22,55 +26,90 @@ body {
 }
 
 .card {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  background: rgba(255,255,255,0.95);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+  animation: fadeUp .4s ease;
+}
+
+.search-card {
+  backdrop-filter: blur(6px);
 }
 
 .row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 input, select, textarea {
-  padding: 6px;
+  padding: 8px;
   width: 100%;
   box-sizing: border-box;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
 .primary-btn, .select-btn, button {
-  padding: 8px 14px;
+  padding: 9px 16px;
   margin-top: 10px;
   cursor: pointer;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+}
+
+button:hover {
+  background: #1d4ed8;
 }
 
 .flight {
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  background: rgba(255,255,255,0.96);
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.15);
+  animation: fadeUp .35s ease;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.flight:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(0,0,0,.22);
 }
 
 .hidden {
   display: none;
 }
 
+/* pager only after search */
+
 .pager {
   text-align: center;
-  margin: 20px;
+  margin: 25px 0 35px 0;
 }
 
-/* ---------------- Disclaimer styling ---------------- */
+.pager button {
+  background: #0f766e;
+}
+
+.pager button:hover {
+  background: #115e59;
+}
+
+/* disclaimer */
 
 .disclaimer-box {
   background: #fff3cd;
   color: #664d03;
   border: 1px solid #ffecb5;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 14px 16px;
-  margin-bottom: 15px;
+  margin-bottom: 18px;
   font-size: 14px;
 }
 
@@ -83,8 +122,25 @@ input, select, textarea {
   margin-bottom: 5px;
 }
 
-/* ---------------- Booking form ---------------- */
+/* booking form */
 
 .booking-form {
   margin-top: 10px;
+}
+
+.booking-form textarea {
+  min-height: 70px;
+}
+
+/* animation */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

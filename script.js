@@ -5,6 +5,7 @@ let lastResults = [];
 
 const form = document.getElementById("searchForm");
 const resultsDiv = document.getElementById("results");
+const pager = document.getElementById("pager");
 
 const originInput = document.getElementById("origin");
 const destinationInput = document.getElementById("destination");
@@ -44,6 +45,7 @@ form.addEventListener("submit", async (e) => {
 
 async function search() {
 
+  pager.classList.add("hidden");
   resultsDiv.textContent = "Searching...";
 
   const response = await fetch(API + "/api/search-flights", {
@@ -65,6 +67,7 @@ async function search() {
 
   if (!response.ok || !data.results) {
     resultsDiv.textContent = data.error || "No results found.";
+    pager.classList.add("hidden");
     return;
   }
 
@@ -74,6 +77,8 @@ async function search() {
     "Page " + data.page;
 
   renderResults();
+
+  pager.classList.remove("hidden");
 }
 
 /* ---------------- RENDER ---------------- */
@@ -85,13 +90,8 @@ function renderResults() {
   const stopFilter = document.getElementById("stopFilter").value;
   const sortBy = document.getElementById("sortBy").value;
 
-  if (stopFilter === "direct") {
-    data = data.filter(f => f.stops === 0);
-  }
-
-  if (stopFilter === "layover") {
-    data = data.filter(f => f.stops > 0);
-  }
+  if (stopFilter === "direct") data = data.filter(f => f.stops === 0);
+  if (stopFilter === "layover") data = data.filter(f => f.stops > 0);
 
   if (sortBy === "price") {
     data.sort((a, b) => a.finalPrice - b.finalPrice);
