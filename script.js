@@ -6,11 +6,18 @@ let lastResults = [];
 const form = document.getElementById("searchForm");
 const resultsDiv = document.getElementById("results");
 
-const tripType = document.getElementById("tripType");
+const originInput = document.getElementById("origin");
+const destinationInput = document.getElementById("destination");
+const dateInput = document.getElementById("date");
+const returnDateInput = document.getElementById("returnDate");
+const adultsInput = document.getElementById("adults");
+const childrenInput = document.getElementById("children");
+
+const tripTypeSelect = document.getElementById("tripType");
 const returnBox = document.getElementById("returnDateContainer");
 
-tripType.addEventListener("change", () => {
-  returnBox.classList.toggle("hidden", tripType.value !== "roundtrip");
+tripTypeSelect.addEventListener("change", () => {
+  returnBox.classList.toggle("hidden", tripTypeSelect.value !== "roundtrip");
 });
 
 function formatDuration(iso) {
@@ -43,13 +50,13 @@ async function search() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      origin: origin.value,
-      destination: destination.value,
-      date: date.value,
-      returnDate: returnDate.value,
-      adults: adults.value,
-      children: children.value,
-      tripType: tripType.value,
+      origin: originInput.value.trim(),
+      destination: destinationInput.value.trim(),
+      date: dateInput.value,
+      returnDate: returnDateInput.value,
+      adults: adultsInput.value,
+      children: childrenInput.value,
+      tripType: tripTypeSelect.value,
       page: currentPage
     })
   });
@@ -131,6 +138,7 @@ function normalizeFlight(raw) {
   let layoverText = "";
 
   for (let i = 0; i < segments.length - 1; i++) {
+
     const mins = minutesBetween(
       segments[i].arrive,
       segments[i + 1].depart
