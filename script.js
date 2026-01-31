@@ -152,10 +152,8 @@ function renderResults() {
         <div><strong>Duration:</strong> ${f.duration}</div>
         <div><strong>Stops:</strong> ${f.stops}</div>
         <div><strong>Baggage:</strong> ${f.baggage}</div>
-
-        <div><strong>Flight segments:</strong><br>${f.segmentDetails}</div>
-
         ${f.layovers ? `<div><strong>Layovers:</strong><br>${f.layovers}</div>` : ""}
+        <div><strong>Flight segments:</strong><br>${f.segmentsHtml}</div>
       </div>
 
       <button class="select-btn">Request booking</button>
@@ -179,10 +177,25 @@ function normalizeFlight(raw) {
 
   for (let i = 0; i < segments.length - 1; i++) {
 
+    /*
+      IMPORTANT FIX:
+      Do NOT treat the gap between outbound and return flights as layover.
+
+      That boundary is detected when:
+      current.from === next.to
+      (direction reverses)
+    */
+
+    if (segments[i].from === segments[i + 1].to) {
+      continue;
+    }
+
     const mins = minutesBetween(
       segments[i].arrive,
       segments[i + 1].depart
     );
+
+    if (mins < 0) continue;
 
     const h = Math.floor(mins / 60);
     const m = mins % 60;
@@ -207,11 +220,11 @@ function normalizeFlight(raw) {
     if (m) totalMinutes += parseInt(m[1]);
   });
 
-  const segmentDetails = segments.map((s, i) => {
+  const segmentsHtml = segments.map((s, i) => {
     return `${i + 1}. ${s.airline}${s.flightNumber} ${s.from} → ${s.to}
-Depart: ${new Date(s.depart).toLocaleString()}
-Arrive: ${new Date(s.arrive).toLocaleString()}`;
-  }).join("<br><br>");
+      Depart: ${new Date(s.depart).toLocaleString()}
+      Arrive: ${new Date(s.arrive).toLocaleString()}<br>`;
+  }).join("");
 
   const basePrice = Number(raw.price);
   const finalPrice = basePrice + 75;
@@ -224,7 +237,7 @@ Arrive: ${new Date(s.arrive).toLocaleString()}`;
     baggage: baggageText,
     layovers: layoverText,
     totalMinutes,
-    segmentDetails,
+    segmentsHtml,
     raw
   };
 }
