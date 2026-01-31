@@ -21,6 +21,20 @@ tripTypeSelect.addEventListener("change", () => {
   returnBox.classList.toggle("hidden", tripTypeSelect.value !== "roundtrip");
 });
 
+/* enforce uppercase for airport codes */
+
+originInput.addEventListener("input", () => {
+  originInput.value = originInput.value.toUpperCase();
+});
+
+destinationInput.addEventListener("input", () => {
+  destinationInput.value = destinationInput.value.toUpperCase();
+});
+
+function isValidIata(v) {
+  return /^[A-Z]{3}$/.test(v);
+}
+
 function formatDuration(iso) {
   if (!iso) return "";
   const h = iso.match(/(\d+)H/);
@@ -45,6 +59,21 @@ form.addEventListener("submit", async (e) => {
 
 async function search() {
 
+  const origin = originInput.value.trim().toUpperCase();
+  const destination = destinationInput.value.trim().toUpperCase();
+
+  if (!isValidIata(origin)) {
+    alert("Origin must be a 3-letter airport code (example: DOH, LHR, DAC)");
+    originInput.focus();
+    return;
+  }
+
+  if (!isValidIata(destination)) {
+    alert("Destination must be a 3-letter airport code (example: DOH, LHR, DAC)");
+    destinationInput.focus();
+    return;
+  }
+
   pager.classList.add("hidden");
   resultsDiv.textContent = "Searching...";
 
@@ -52,8 +81,8 @@ async function search() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      origin: originInput.value.trim(),
-      destination: destinationInput.value.trim(),
+      origin,
+      destination,
       date: dateInput.value,
       returnDate: returnDateInput.value,
       adults: adultsInput.value,
