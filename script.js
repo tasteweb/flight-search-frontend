@@ -3,175 +3,97 @@ const API = "https://flight-search-backend-jgmb.onrender.com";
 let currentPage = 1;
 let lastResults = [];
 
-const originInput = document.getElementById("origin");
-const destInput = document.getElementById("destination");
-const originList = document.getElementById("originList");
-const destList = document.getElementById("destinationList");
-
 const form = document.getElementById("searchForm");
 const resultsDiv = document.getElementById("results");
 
-const tripType = document.getElementById("tripType");
+const originInput = document.getElementById("origin");
+const destinationInput = document.getElementById("destination");
+const dateInput = document.getElementById("date");
+const returnDateInput = document.getElementById("returnDate");
+const adultsInput = document.getElementById("adults");
+const childrenInput = document.getElementById("children");
+
+const tripTypeSelect = document.getElementById("tripType");
 const returnBox = document.getElementById("returnDateContainer");
 
-const modal = document.getElementById("modal");
-const closeModalBtn = document.getElementById("closeModal");
-
-tripType.addEventListener("change", () => {
-  returnBox.classList.toggle("hidden", tripType.value !== "roundtrip");
+tripTypeSelect.addEventListener("change", () => {
+  returnBox.classList.toggle("hidden", tripTypeSelect.value !== "roundtrip");
 });
 
-/* make sure modal is hidden on page load */
-modal.classList.add("hidden");
-
-/* ---------------- AUTOCOMPLETE ---------------- */
-
-async function fetchLocations(q) {
-  const r = await fetch(API + "/api/locations?q=" + encodeURIComponent(q));
-  return r.json();
-}
-
-function bindAutocomplete(input, box) {
-  input.addEventListener("input", async () => {
-    const q = input.value.trim();
-    box.innerHTML = "";
-
-    if (q.length < 2) return;
-
-    const data = await fetchLocations(q);
-
-    data.forEach(l => {
-      const d = document.createElement("div");
-      d.textContent = `${l.name} (${l.code})`;
-      d.onclick = () => {
-        input.value = l.code;
-        box.innerHTML = "";
-      };
-      box.appendChild(d);
-    });
-  });
-
-  document.addEventListener("click", e => {
-    if (!box.contains(e.target) && e.target !== input) {
-      box.innerHTML = "";
-    }
-  });
-}
-
-bindAutocomplete(originInput, originList);
-bindAutocomplete(destInput, destList);
-
-/* ---------------- helpers ---------------- */
-
-function dur(iso) {
+function formatDuration(iso) {
+  if (!iso) return "";
   const h = iso.match(/(\d+)H/);
   const m = iso.match(/(\d+)M/);
-  return `${h ? h[1] + "h" : ""} ${m ? h ? " " + m[1] + "m" : m[1] + "m" : ""}`.trim();
+  let out = "";
+  if (h) out += h[1] + "h ";
+  if (m) out += m[1] + "m";
+  return out.trim();
 }
 
 function minutesBetween(a, b) {
-  return (new Date(b) - new Date(a)) / 60000;
+  return Math.floor((new Date(b) - new Date(a)) / 60000);
 }
 
 /* ---------------- SEARCH ---------------- */
 
-form.onsubmit = async e => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-
-  if (!originInput.value || !destInput.value || !date.value) {
-    alert("Please fill From, To and Departure date.");
-    return;
-  }
-
-  if (tripType.value === "roundtrip" && !returnDate.value) {
-    alert("Please select return date.");
-    return;
-  }
-
   currentPage = 1;
   await search();
-};
+});
 
 async function search() {
+
   resultsDiv.textContent = "Searching...";
 
-  const r = await fetch(API + "/api/search-flights", {
+  const response = await fetch(API + "/api/search-flights", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      origin: originInput.value,
-      destination: destInput.value,
-      date: date.value,
-      returnDate: returnDate.value,
-      adults: adults.value,
-      children: children.value,
-      tripType: tripType.value,
+      origin: originInput.value.trim(),
+      destination: destinationInput.value.trim(),
+      date: dateInput.value,
+      returnDate: returnDateInput.value,
+      adults: adultsInput.value,
+      children: childrenInput.value,
+      tripType: tripTypeSelect.value,
       page: currentPage
     })
   });
 
-  const data = await r.json();
+  const data = await response.json();
 
-  if (!r.ok || !data.results) {
-    resultsDiv.textContent = data.error || "No results";
+  if (!response.ok || !data.results) {
+    resultsDiv.textContent = data.error || "No results found.";
     return;
   }
 
-  lastResults = data.results.map(normalize);
-  pageLabel.textContent = "Page " + data.page;
+  lastResults = data.results.map(normalizeFlight);
 
-  render();
-}
+  document.getElementById("pageLabel").textContent =
+    "Page " + data.page;
 
-/* ---------------- NORMALIZE ---------------- */
-
-function normalize(raw) {
-  let lay = "";
-
-  for (let i = 0; i < raw.segments.length - 1; i++) {
-    const m = minutesBetween(
-      raw.segments[i].arrive,
-      raw.segments[i + 1].depart
-    );
-    lay += `Layover in ${raw.segments[i].to}: ${Math.floor(m / 60)}h ${Math.floor(m % 60)}m<br>`;
-  }
-
-  const baggage =
-    raw.baggage.length
-      ? raw.baggage
-          .map(b => `Checked ${b.checkedBags}, Cabin ${b.cabinBags}`)
-          .join(" | ")
-      : "Not available";
-
-  let minutes = 0;
-  raw.segments.forEach(s => {
-    const h = s.duration.match(/(\d+)H/);
-    const m = s.duration.match(/(\d+)M/);
-    if (h) minutes += parseInt(h[1]) * 60;
-    if (m) minutes += parseInt(m[1]);
-  });
-
-  return {
-    title: raw.segments.map(s => s.airline + s.flightNumber).join(" + "),
-    duration: dur(raw.totalDuration),
-    stops: raw.stops,
-    baggage,
-    layovers: lay,
-    totalMinutes: minutes,
-    finalPrice: Number(raw.price) + 75,
-    raw
-  };
+  renderResults();
 }
 
 /* ---------------- RENDER ---------------- */
 
-function render() {
+function renderResults() {
+
   let data = [...lastResults];
 
-  if (stopFilter.value === "direct") data = data.filter(f => f.stops === 0);
-  if (stopFilter.value === "layover") data = data.filter(f => f.stops > 0);
+  const stopFilter = document.getElementById("stopFilter").value;
+  const sortBy = document.getElementById("sortBy").value;
 
-  if (sortBy.value === "price") {
+  if (stopFilter === "direct") {
+    data = data.filter(f => f.stops === 0);
+  }
+
+  if (stopFilter === "layover") {
+    data = data.filter(f => f.stops > 0);
+  }
+
+  if (sortBy === "price") {
     data.sort((a, b) => a.finalPrice - b.finalPrice);
   } else {
     data.sort((a, b) => a.totalMinutes - b.totalMinutes);
@@ -179,13 +101,19 @@ function render() {
 
   resultsDiv.innerHTML = "";
 
+  if (data.length === 0) {
+    resultsDiv.textContent = "No flights match your filters.";
+    return;
+  }
+
   data.forEach(f => {
+
     const d = document.createElement("div");
     d.className = "flight";
 
     d.innerHTML = `
-      <b>${f.title}</b><br>
-      Price (incl. service fee): ${f.finalPrice.toFixed(2)} SAR<br>
+      <strong>${f.title}</strong><br>
+      Price: ${f.finalPrice.toFixed(2)} SAR (includes 75 SAR service fee)<br>
       Duration: ${f.duration}<br>
       Stops: ${f.stops}<br>
       Baggage: ${f.baggage}<br>
@@ -193,93 +121,127 @@ function render() {
       <button class="select-btn">Request booking</button>
     `;
 
-    d.querySelector("button").onclick = () => showBooking(f.raw, d);
+    d.querySelector("button").addEventListener("click", () => {
+      showBookingForm(f.raw, d);
+    });
 
     resultsDiv.appendChild(d);
   });
 }
 
-/* ---------------- PAGING & FILTER ---------------- */
+/* ---------------- NORMALIZE ---------------- */
 
-prevPage.onclick = async () => {
+function normalizeFlight(raw) {
+
+  const segments = raw.segments;
+
+  let layoverText = "";
+
+  for (let i = 0; i < segments.length - 1; i++) {
+
+    const mins = minutesBetween(
+      segments[i].arrive,
+      segments[i + 1].depart
+    );
+
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+
+    layoverText += `Layover in ${segments[i].to}: ${h}h ${m}m<br>`;
+  }
+
+  let baggageText = "Baggage information not available";
+
+  if (raw.baggage && raw.baggage.length) {
+    baggageText = raw.baggage
+      .map(b => `Checked ${b.checkedBags}, Cabin ${b.cabinBags}`)
+      .join(" | ");
+  }
+
+  let totalMinutes = 0;
+
+  segments.forEach(s => {
+    const h = s.duration.match(/(\d+)H/);
+    const m = s.duration.match(/(\d+)M/);
+    if (h) totalMinutes += parseInt(h[1]) * 60;
+    if (m) totalMinutes += parseInt(m[1]);
+  });
+
+  const basePrice = Number(raw.price);
+  const finalPrice = basePrice + 75;
+
+  return {
+    title: segments.map(s => s.airline + s.flightNumber).join(" + "),
+    duration: formatDuration(raw.totalDuration),
+    stops: raw.stops,
+    finalPrice,
+    baggage: baggageText,
+    layovers: layoverText,
+    totalMinutes,
+    raw
+  };
+}
+
+/* ---------------- PAGINATION ---------------- */
+
+document.getElementById("prevPage").addEventListener("click", async () => {
   if (currentPage > 1) {
     currentPage--;
     await search();
   }
-};
+});
 
-nextPage.onclick = async () => {
+document.getElementById("nextPage").addEventListener("click", async () => {
   currentPage++;
   await search();
-};
+});
 
-stopFilter.onchange = render;
-sortBy.onchange = render;
+document.getElementById("stopFilter").addEventListener("change", renderResults);
+document.getElementById("sortBy").addEventListener("change", renderResults);
 
-/* ---------------- BOOKING FORM ---------------- */
+/* ---------------- BOOKING ---------------- */
 
-function showBooking(flight, parent) {
-  document.querySelector(".booking-form")?.remove();
+function showBookingForm(flight, parent) {
+
+  const old = document.querySelector(".booking-form");
+  if (old) old.remove();
 
   const d = document.createElement("div");
   d.className = "card booking-form";
 
   d.innerHTML = `
-    <h3>Request booking assistance</h3>
-    <input id="bn" placeholder="Full name">
-    <input id="be" placeholder="Email">
-    <input id="bp" placeholder="Phone">
-    <textarea id="bno" placeholder="Notes"></textarea>
-    <button id="sendReq">Send request</button>
-    <div id="bs" style="color:red;margin-top:6px;"></div>
+    <h3>Booking request</h3>
+    <input id="bn" placeholder="Name"><br>
+    <input id="be" placeholder="Email"><br>
+    <input id="bp" placeholder="Phone"><br>
+    <textarea id="bno" placeholder="Notes"></textarea><br>
+    <button id="sendReq">Send</button>
+    <div id="bs"></div>
   `;
 
   parent.after(d);
 
-  const sendBtn = d.querySelector("#sendReq");
-  const statusBox = d.querySelector("#bs");
+  document.getElementById("sendReq").addEventListener("click", async () => {
 
-  sendBtn.onclick = async () => {
-    if (!bn.value || !be.value || !be.value.includes("@")) {
-      statusBox.textContent = "Please enter a valid name and email.";
-      return;
-    }
+    const status = document.getElementById("bs");
+    status.textContent = "Sending...";
 
-    sendBtn.disabled = true;
-    sendBtn.textContent = "Sending...";
+    const r = await fetch(API + "/api/booking-request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: document.getElementById("bn").value,
+        email: document.getElementById("be").value,
+        phone: document.getElementById("bp").value,
+        notes: document.getElementById("bno").value,
+        flight
+      })
+    });
 
-    try {
-      const r = await fetch(API + "/api/booking-request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: bn.value,
-          email: be.value,
-          phone: bp.value,
-          notes: bno.value,
-          flight
-        })
-      });
+    const j = await r.json();
 
-      const j = await r.json();
-
-      if (j.success) {
-        modal.classList.remove("hidden");
-      } else {
-        statusBox.textContent = j.error || "Failed to send request.";
-      }
-
-    } catch (e) {
-      statusBox.textContent = "Network error. Please try again.";
-    } finally {
-      sendBtn.disabled = false;
-      sendBtn.textContent = "Send request";
-    }
-  };
+    status.textContent = j.success
+      ? "Request sent. Please check your email."
+      : (j.error || "Failed to send request.");
+  });
 }
-
-/* ---------------- MODAL CLOSE ---------------- */
-
-closeModalBtn.addEventListener("click", () => {
-  modal.classList.add("hidden");
-});

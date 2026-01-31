@@ -7,7 +7,7 @@ body {
 }
 
 .topbar {
-  background: #fff;
+  background: #ffffff;
   padding: 10px 30px;
 }
 
@@ -21,11 +21,11 @@ body {
   padding: 20px;
 }
 
-.card, .flight {
+.card {
   background: white;
-  padding: 14px;
+  padding: 15px;
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 15px;
 }
 
 .row {
@@ -35,72 +35,56 @@ body {
 }
 
 input, select, textarea {
-  width: 100%;
   padding: 6px;
+  width: 100%;
   box-sizing: border-box;
 }
 
 .primary-btn, .select-btn, button {
   padding: 8px 14px;
-  margin-top: 8px;
+  margin-top: 10px;
   cursor: pointer;
 }
 
-.hidden { display: none; }
+.flight {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.hidden {
+  display: none;
+}
 
 .pager {
   text-align: center;
-  margin: 15px;
+  margin: 20px;
 }
 
-.autocomplete {
-  position: relative;
-  width: 100%;
-}
-
-.suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  z-index: 50;
-}
-
-.suggestions div {
-  padding: 6px;
-  cursor: pointer;
-}
-
-.suggestions div:hover {
-  background: #eee;
-}
+/* ---------------- Disclaimer styling ---------------- */
 
 .disclaimer-box {
   background: #fff3cd;
-  padding: 10px;
+  color: #664d03;
+  border: 1px solid #ffecb5;
   border-radius: 8px;
-  margin-bottom: 12px;
+  padding: 14px 16px;
+  margin-bottom: 15px;
+  font-size: 14px;
 }
 
-/* modal */
-
-.modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
+.disclaimer-box ul {
+  margin: 8px 0 0 18px;
+  padding: 0;
 }
 
-.modal-card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
+.disclaimer-box li {
+  margin-bottom: 5px;
+}
+
+/* ---------------- Booking form ---------------- */
+
+.booking-form {
+  margin-top: 10px;
 }
