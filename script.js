@@ -21,8 +21,6 @@ tripTypeSelect.addEventListener("change", () => {
   returnBox.classList.toggle("hidden", tripTypeSelect.value !== "roundtrip");
 });
 
-/* enforce uppercase for airport codes */
-
 originInput.addEventListener("input", () => {
   originInput.value = originInput.value.toUpperCase();
 });
@@ -63,19 +61,17 @@ async function search() {
   const destination = destinationInput.value.trim().toUpperCase();
 
   if (!isValidIata(origin)) {
-    alert("Origin must be a 3-letter airport code (example: DOH, LHR, DAC)");
-    originInput.focus();
+    alert("Origin must be a 3-letter airport code");
     return;
   }
 
   if (!isValidIata(destination)) {
-    alert("Destination must be a 3-letter airport code (example: DOH, LHR, DAC)");
-    destinationInput.focus();
+    alert("Destination must be a 3-letter airport code");
     return;
   }
 
   pager.classList.add("hidden");
-  resultsDiv.textContent = "Searching...";
+  resultsDiv.innerHTML = `<div class="searching">Searching flights…</div>`;
 
   const response = await fetch(API + "/api/search-flights", {
     method: "POST",
@@ -102,8 +98,8 @@ async function search() {
 
   lastResults = data.results.map(normalizeFlight);
 
-  document.getElementById("pageLabel").textContent =
-    "Page " + data.page;
+  document.getElementById("pageLabel").innerHTML =
+    `<span class="page-badge">Page ${data.page}</span>`;
 
   renderResults();
 
@@ -138,15 +134,27 @@ function renderResults() {
   data.forEach(f => {
 
     const d = document.createElement("div");
-    d.className = "flight";
+    d.className = "flight animated-card";
 
     d.innerHTML = `
-      <strong>${f.title}</strong>
-      Price: ${f.finalPrice.toFixed(2)} SAR (includes 75 SAR service fee)<br>
-      Duration: ${f.duration}<br>
-      Stops: ${f.stops}<br>
-      Baggage: ${f.baggage}<br>
-      ${f.layovers}
+      <div class="flight-header-row">
+        <div class="flight-title">${f.title}</div>
+        <div class="flight-price">
+          ${f.finalPrice.toFixed(2)} SAR
+        </div>
+      </div>
+
+      <div class="flight-sub">
+        Includes 75 SAR service fee
+      </div>
+
+      <div class="flight-details">
+        <div><strong>Duration:</strong> ${f.duration}</div>
+        <div><strong>Stops:</strong> ${f.stops}</div>
+        <div><strong>Baggage:</strong> ${f.baggage}</div>
+        ${f.layovers ? `<div><strong>Layovers:</strong><br>${f.layovers}</div>` : ""}
+      </div>
+
       <button class="select-btn">Request booking</button>
     `;
 
@@ -179,7 +187,7 @@ function normalizeFlight(raw) {
     layoverText += `Layover in ${segments[i].to}: ${h}h ${m}m<br>`;
   }
 
-  let baggageText = "Baggage information not available";
+  let baggageText = "Not available";
 
   if (raw.baggage && raw.baggage.length) {
     baggageText = raw.baggage
@@ -253,8 +261,8 @@ function showBookingForm(flight, parent) {
   document.getElementById("sendReq").addEventListener("click", async () => {
 
     const status = document.getElementById("bs");
-    status.textContent = "Sending...";
-    status.className = "";
+    status.textContent = "Sending request…";
+    status.className = "searching";
 
     const r = await fetch(API + "/api/booking-request", {
       method: "POST",
@@ -271,7 +279,7 @@ function showBookingForm(flight, parent) {
     const j = await r.json();
 
     if (j.success) {
-      status.textContent = "Request sent. Please check your email.";
+      status.textContent = "Request sent successfully. Please check your email.";
       status.className = "status-message";
     } else {
       status.textContent = j.error || "Failed to send request.";

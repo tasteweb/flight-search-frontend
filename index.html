@@ -2,33 +2,44 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Flight Search</title>
+  <title>Sixteen Stars Travel & Tourism - Flight search</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="topbar">
-  <img src="logo.png" class="logo">
+  <div class="topbar-inner">
+    <img src="logo.png" class="logo">
+
+    <div class="brand-text">
+      <div class="brand-name">Sixteen Stars Travel & Tourism</div>
+      <div class="brand-tagline">
+        Search and request flight bookings from our agency
+      </div>
+    </div>
+  </div>
 </header>
 
 <div class="container">
 
   <form id="searchForm" class="card search-card">
 
+    <h2 class="form-title">Search flights</h2>
+
     <div class="row">
-      <div>
+      <div class="field">
         <label>From (3-letter airport code, e.g. DOH)</label>
         <input id="origin" placeholder="DOH" required>
       </div>
 
-      <div>
+      <div class="field">
         <label>To (3-letter airport code, e.g. LHR)</label>
         <input id="destination" placeholder="LHR" required>
       </div>
     </div>
 
     <div class="row">
-      <div>
+      <div class="field">
         <label>Trip type</label>
         <select id="tripType">
           <option value="oneway">One way</option>
@@ -36,29 +47,29 @@
         </select>
       </div>
 
-      <div>
+      <div class="field">
         <label>Departure</label>
         <input type="date" id="date" required>
       </div>
 
-      <div id="returnDateContainer" class="hidden">
+      <div id="returnDateContainer" class="field hidden">
         <label>Return</label>
         <input type="date" id="returnDate">
       </div>
     </div>
 
     <div class="row">
-      <div>
+      <div class="field">
         <label>Adults</label>
         <input type="number" id="adults" value="1" min="1">
       </div>
 
-      <div>
+      <div class="field">
         <label>Children</label>
         <input type="number" id="children" value="0" min="0">
       </div>
 
-      <div>
+      <div class="field">
         <label>Stops</label>
         <select id="stopFilter">
           <option value="all">All</option>
@@ -67,7 +78,7 @@
         </select>
       </div>
 
-      <div>
+      <div class="field">
         <label>Sort</label>
         <select id="sortBy">
           <option value="price">Lowest price</option>
