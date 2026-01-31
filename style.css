@@ -255,3 +255,110 @@ button:hover {
   50% { opacity: 1; }
   100% { opacity: .4; }
 }
+
+/* =======================================================
+   RESPONSIVE DESIGN
+   ======================================================= */
+
+/* tablets and small laptops */
+@media (max-width: 900px) {
+
+  .container {
+    padding: 20px 14px 32px;
+  }
+
+  .flight-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .flight-price {
+    margin-top: 4px;
+  }
+}
+
+/* phones */
+@media (max-width: 600px) {
+
+  .topbar-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .brand-name {
+    font-size: 18px;
+  }
+
+  .brand-tagline {
+    font-size: 12px;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .field {
+    min-width: 100%;
+  }
+
+  .card {
+    padding: 18px 16px;
+  }
+
+  .flight {
+    padding: 16px 14px;
+  }
+
+  .flight-title {
+    font-size: 15px;
+  }
+
+  .flight-price {
+    font-size: 17px;
+  }
+
+  .primary-btn,
+  .select-btn,
+  button {
+    width: 100%;
+  }
+
+  .pager button {
+    width: 45%;
+  }
+
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-badge {
+    display: block;
+    margin: 10px auto;
+  }
+
+  .booking-form input,
+  .booking-form textarea {
+    font-size: 15px;
+  }
+}
+
+/* very small phones */
+@media (max-width: 380px) {
+
+  .brand-name {
+    font-size: 16px;
+  }
+
+  .logo {
+    height: 40px;
+  }
+
+  .flight-sub {
+    font-size: 11px;
+  }
+}
