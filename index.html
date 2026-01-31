@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Flight Search</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -13,74 +13,75 @@
 
 <div class="container">
 
-  <form id="searchForm" class="card">
+<form id="searchForm" class="card">
 
-    <div class="row">
-      <div>
-        <label>From (city or airport)</label>
-        <input id="origin" required>
-      </div>
-
-      <div>
-        <label>To (city or airport)</label>
-        <input id="destination" required>
-      </div>
+  <div class="row">
+    <div class="autocomplete">
+      <label>From</label>
+      <input id="origin" autocomplete="off">
+      <div id="originList" class="suggestions"></div>
     </div>
 
-    <div class="row">
-      <div>
-        <label>Trip type</label>
-        <select id="tripType">
-          <option value="oneway">One way</option>
-          <option value="roundtrip">Round trip</option>
-        </select>
-      </div>
+    <div class="autocomplete">
+      <label>To</label>
+      <input id="destination" autocomplete="off">
+      <div id="destinationList" class="suggestions"></div>
+    </div>
+  </div>
 
-      <div>
-        <label>Departure</label>
-        <input type="date" id="date" required>
-      </div>
-
-      <div id="returnDateContainer" class="hidden">
-        <label>Return</label>
-        <input type="date" id="returnDate">
-      </div>
+  <div class="row">
+    <div>
+      <label>Trip type</label>
+      <select id="tripType">
+        <option value="oneway">One way</option>
+        <option value="roundtrip">Round trip</option>
+      </select>
     </div>
 
-    <div class="row">
-      <div>
-        <label>Adults</label>
-        <input type="number" id="adults" value="1" min="1">
-      </div>
-
-      <div>
-        <label>Children</label>
-        <input type="number" id="children" value="0" min="0">
-      </div>
-
-      <div>
-        <label>Stops</label>
-        <select id="stopFilter">
-          <option value="all">All</option>
-          <option value="direct">Direct only</option>
-          <option value="layover">With layover</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Sort</label>
-        <select id="sortBy">
-          <option value="price">Lowest price</option>
-          <option value="duration">Shortest trip</option>
-        </select>
-      </div>
+    <div>
+      <label>Departure</label>
+      <input type="date" id="date">
     </div>
 
-    <button class="primary-btn">Search flights</button>
+    <div id="returnDateContainer" class="hidden">
+      <label>Return</label>
+      <input type="date" id="returnDate">
+    </div>
+  </div>
 
-  </form>
+  <div class="row">
+    <div>
+      <label>Adults</label>
+      <input type="number" id="adults" value="1" min="1">
+    </div>
 
-  <!-- PRICE / AVAILABILITY DISCLAIMER -->
+    <div>
+      <label>Children</label>
+      <input type="number" id="children" value="0" min="0">
+    </div>
+
+    <div>
+      <label>Stops</label>
+      <select id="stopFilter">
+        <option value="all">All</option>
+        <option value="direct">Direct only</option>
+        <option value="layover">With layover</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Sort</label>
+      <select id="sortBy">
+        <option value="price">Lowest price</option>
+        <option value="duration">Shortest trip</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="primary-btn">Search flights</button>
+
+</form>
+
   <div class="disclaimer-box">
     <strong>Important notice</strong>
     <ul>
@@ -90,14 +91,22 @@
     </ul>
   </div>
 
-  <div id="results"></div>
+<div id="results"></div>
 
-  <div class="pager">
-    <button id="prevPage">Previous</button>
-    <span id="pageLabel"></span>
-    <button id="nextPage">Next</button>
+<div class="pager">
+  <button id="prevPage">Previous</button>
+  <span id="pageLabel"></span>
+  <button id="nextPage">Next</button>
+</div>
+
+</div>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-card">
+    <h3>Request received</h3>
+    <p>Your booking request was sent successfully.</p>
+    <button id="closeModal">Close</button>
   </div>
-
 </div>
 
 <script src="script.js"></script>
